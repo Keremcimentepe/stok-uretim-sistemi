@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Depo Transfer</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<div class="container mt-5">
+  <div class="card shadow" style="max-width: 600px; margin: auto;">
+    <div class="card-header bg-warning text-dark">
+      <h4><i class="fas fa-truck-loading"></i> Depolar Arası Transfer</h4>
+    </div>
+    <div class="card-body">
+      <form th:action="@{/transfer-yap}" method="post">
+
+        <div class="mb-3">
+          <label class="fw-bold">Hangi Ürün?</label>
+          <select name="urunId" class="form-select" required>
+            <option th:each="u : ${urunListesi}" th:value="${u.urunId}" th:text="${u.urunAdi}"></option>
+          </select>
+        </div>
+
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label class="text-danger fw-bold">Çıkış Yapılacak Depo</label>
+            <select name="cikisDepoId" class="form-select" required>
+              <option th:each="d : ${depoListesi}" th:value="${d.depoId}" th:text="${d.depoAdi}"></option>
+            </select>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label class="text-success fw-bold">Giriş Yapılacak Depo</label>
+            <select name="girisDepoId" class="form-select" required>
+              <option th:each="d : ${depoListesi}" th:value="${d.depoId}" th:text="${d.depoAdi}"></option>
+            </select>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="fw-bold">Miktar</label>
+          <input type="number" name="miktar" class="form-control" required placeholder="0.00">
+        </div>
+
+        <button type="submit" class="btn btn-warning w-100">Transferi Başlat</button>
+      </form>
+    </div>
+  </div>
+</div>
+</body>
+</html>
