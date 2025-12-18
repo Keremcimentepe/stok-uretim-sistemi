@@ -22,7 +22,30 @@ public class UrunService {
         return urunRepository.kritikStokSayisiniGetir();
     }
     // UrunService.java içine ekle:
+    // UrunService.java içine ekle:
+    public List<Urun> urunAra(String kelime) {
+        if (kelime != null && !kelime.isEmpty()) {
 
+            // ESKİSİ: urunRepository.findByUrunAdiContaining... (SİL)
+
+            // YENİSİ:
+            List<Urun> bulunanlar = urunRepository.aramaYap(kelime);
+
+            // --- Buradan aşağısı aynı kalacak ---
+            for (Urun u : bulunanlar) {
+                List<Object[]> stoklar = stokHareketRepository.urunBazliStokDurumu(u.getUrunId());
+                StringBuilder dagilim = new StringBuilder();
+                for (Object[] row : stoklar) {
+                    String depoAdi = (String) row[0];
+                    Double miktar = ((Number) row[1]).doubleValue();
+                    if (miktar > 0) dagilim.append(depoAdi).append(": <b>").append(miktar).append("</b> | ");
+                }
+                u.setDepoDagilimi(dagilim.toString());
+            }
+            return bulunanlar;
+        }
+        return urunleriDetayliGetir();
+    }
     @Transactional
     public void urunGuncelle(Urun gelenUrun) {
         // 1. Veritabanındaki asıl ürünü bul
