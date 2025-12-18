@@ -8,6 +8,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.security.Principal;
 
@@ -30,5 +31,25 @@ public class StokHareketController {
         // Principal: O an sisteme giriş yapmış kullanıcının bilgisini tutar
         service.hareketKaydet(hareket, principal.getName());
         return "redirect:/urunler"; // İşlem bitince ürün listesine dön
+    }
+    // StokHareketController.java içine ekle:
+
+    @GetMapping("/transfer")
+    public String transferFormu(Model model) {
+        model.addAttribute("urunListesi", service.tumUrunler());
+        model.addAttribute("depoListesi", service.tumDepolar());
+        return "transfer_form";
+    }
+
+    @PostMapping("/transfer-yap")
+    public String transferYap(
+            @RequestParam Integer cikisDepoId,
+            @RequestParam Integer girisDepoId,
+            @RequestParam Integer urunId,
+            @RequestParam Double miktar,
+            Principal principal) {
+
+        service.transferYap(cikisDepoId, girisDepoId, urunId, miktar, principal.getName());
+        return "redirect:/depolar";
     }
 }

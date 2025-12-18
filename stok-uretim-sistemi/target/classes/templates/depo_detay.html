@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Depo Stok Durumu</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light container mt-5">
+
+<div class="card shadow">
+  <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+    <h4 class="mb-0">
+      <i class="fas fa-warehouse"></i>
+      <span th:text="${depo.depoAdi}">Depo Adı</span> Stok Durumu
+    </h4>
+    <a href="/depolar" class="btn btn-light btn-sm">Geri Dön</a>
+  </div>
+  <div class="card-body">
+    <table class="table table-striped">
+      <thead>
+      <tr>
+        <th>Ürün Adı</th>
+        <th>Depodaki Miktar</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="satir : ${stokListesi}">
+        <td th:text="${satir[0]}">Ürün Adı</td>
+        <td th:text="${satir[1]}">Miktar</td>
+      </tr>
+      </tbody>
+    </table>
+
+    <div th:if="${#lists.isEmpty(stokListesi)}" class="alert alert-warning">
+      Bu depoda henüz hiç hareket kaydı yok.
+    </div>      Bu depoda henüz hiç hareket kaydı yok.
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

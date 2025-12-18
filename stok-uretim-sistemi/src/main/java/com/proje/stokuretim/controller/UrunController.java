@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 
+import java.security.Principal;
 import java.util.List;
 
 @Controller
@@ -38,25 +39,37 @@ public class UrunController {
     }
 
     // 2. Formdaki "Kaydet" butonuna basılınca burası çalışır
+    // UrunController.java içindeki urunKaydet metodu:
+
+    // UrunController.java içindeki metot:
+
     @PostMapping("/urun-kaydet")
-    public String urunuKaydet(@ModelAttribute("urun") Urun urun) {
-        urunService.urunKaydet(urun);
-        return "redirect:/urunler"; // İş bitince listeye geri dön
+    public String urunKaydet(@ModelAttribute("urun") Urun urun, Principal principal) {
+
+        if (urun.getUrunId() != null && urun.getUrunId() > 0) {
+            // ID varsa bu bir GÜNCELLEME işlemidir.
+            // Stok miktarını ellemeden diğer bilgileri güncelle.
+            urunService.urunGuncelle(urun);
+        } else {
+            // ID yoksa bu YENİ KAYIT işlemidir.
+            // Yeni ürün ekleme servisini çağır (Otomatik Merkez Depo girişi yapan).
+            urunService.yeniUrunEkle(urun, principal.getName());
+        }
+
+        return "redirect:/urunler";
+    }
+    @GetMapping("/urunler")
+    public String urunListesi(Model model) {
+        // GÜNCELLENEN SATIR:
+        List<Urun> urunler = urunService.urunleriDetayliGetir();
+
+        model.addAttribute("urunListesi", urunler);
+        model.addAttribute("kritikSayi", urunService.kritikStokSayisi());
+        return "urunler";
     }
 
 
     private final UrunService urunService;
-    @GetMapping("/urunler")
-    public String urunListesi(Model model) {
-        List<Urun> urunler = urunService.tumUrunleriGetir();
-        model.addAttribute("urunListesi", urunler);
-
-        // YENİ EKLENEN KISIM: Kritik stok sayısını alıp sayfaya gönder
-        Integer kritikSayi = urunService.kritikStokSayisi();
-        model.addAttribute("kritikSayi", kritikSayi);
-
-        return "urunler";
-    }
 
 
 }

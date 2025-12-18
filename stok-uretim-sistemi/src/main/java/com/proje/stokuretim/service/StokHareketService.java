@@ -36,4 +36,35 @@ public class StokHareketService {
         hareket.setTarih(LocalDateTime.now()); // Şu anki zaman
         stokHareketRepository.save(hareket);
     }
+    // StokHareketService.java içine ekle:
+
+    @org.springframework.transaction.annotation.Transactional // Ya hepsi olur ya hiçbiri (Güvenlik)
+    public void transferYap(Integer cikisDepoId, Integer girisDepoId, Integer urunId, Double miktar, String userEmail) {
+        Kullanici yapanKisi = kullaniciRepository.findByEmail(userEmail).orElseThrow();
+        Urun urun = urunRepository.findById(urunId).orElseThrow();
+        Depo cikisDepo = depoRepository.findById(cikisDepoId).orElseThrow();
+        Depo girisDepo = depoRepository.findById(girisDepoId).orElseThrow();
+
+        // 1. ÇIKIŞ HAREKETİ (Kaynak Depodan)
+        StokHareket cikis = new StokHareket();
+        cikis.setUrun(urun);
+        cikis.setDepo(cikisDepo);
+        cikis.setMiktar(miktar);
+        cikis.setIslemTuru("Cikis"); // Trigger çalışıp stoğu düşecek (Genel stok)
+        cikis.setAciklama("Transfer: " + girisDepo.getDepoAdi() + " deposuna gönderildi.");
+        cikis.setKullanici(yapanKisi);
+        cikis.setTarih(LocalDateTime.now());
+        stokHareketRepository.save(cikis);
+
+        // 2. GİRİŞ HAREKETİ (Hedef Depoya)
+        StokHareket giris = new StokHareket();
+        giris.setUrun(urun);
+        giris.setDepo(girisDepo);
+        giris.setMiktar(miktar);
+        giris.setIslemTuru("Giris"); // Trigger çalışıp stoğu artıracak (Genel stok dengelenecek)
+        giris.setAciklama("Transfer: " + cikisDepo.getDepoAdi() + " deposundan geldi.");
+        giris.setKullanici(yapanKisi);
+        giris.setTarih(LocalDateTime.now());
+        stokHareketRepository.save(giris);
+    }
 }
