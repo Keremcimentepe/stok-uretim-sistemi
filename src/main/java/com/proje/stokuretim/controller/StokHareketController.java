@@ -71,19 +71,19 @@ public class StokHareketController {
             @RequestParam Integer urunId,
             @RequestParam Double miktar,
             Principal principal,
-            RedirectAttributes redirectAttributes) { // Hata mesajı için eklendi
+            RedirectAttributes redirectAttributes) {
 
         try {
-            // Transfer servisini çağır
+            // Servis artık kontrol yapıyor
             service.transferYap(cikisDepoId, girisDepoId, urunId, miktar, principal.getName());
 
             redirectAttributes.addFlashAttribute("success", "Transfer başarıyla gerçekleşti.");
-            return "redirect:/depolar";
+            return "redirect:/depolar"; // Başarılıysa Depolara git
 
         } catch (RuntimeException e) {
-            // Transferde de "Yetersiz Stok" hatası olabilir, onu yakalayıp gösterelim
+            // HATA VARSA: Transfer sayfasına geri dön ve hatayı göster
             redirectAttributes.addFlashAttribute("error", e.getMessage());
-            return "redirect:/transfer"; // Hata varsa transfer sayfasına geri dön
+            return "redirect:/transfer";
         }
     }
 }
