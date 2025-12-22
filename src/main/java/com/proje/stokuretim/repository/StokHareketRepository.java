@@ -21,6 +21,14 @@ public interface StokHareketRepository extends JpaRepository<StokHareket, Intege
             "WHERE h.depo_id = :depoId " +
             "GROUP BY u.urun_adi", nativeQuery = true)
     List<Object[]> depodakiStokDurumu(@Param("depoId") Integer depoId);
+    // StokHareketRepository.java içine ekle:
+
+    // Belirli bir depo ve ürün için (Giriş Toplamı - Çıkış Toplamı) işlemini yapar.
+    // COALESCE: Eğer hiç kayıt yoksa NULL yerine 0 döndür demektir.
+    @Query("SELECT COALESCE(SUM(CASE WHEN h.islemTuru = 'Giris' THEN h.miktar ELSE 0 END) - " +
+            "SUM(CASE WHEN h.islemTuru = 'Cikis' THEN h.miktar ELSE 0 END), 0) " +
+            "FROM StokHareket h WHERE h.depo.depoId = :depoId AND h.urun.urunId = :urunId")
+    Double getDepodakiNetStok(@Param("depoId") Integer depoId, @Param("urunId") Integer urunId);
 
     // 2. BELİRLİ BİR ÜRÜNÜN HANGİ DEPODA NE KADAR OLDUĞU (Ana Sayfa İçin)
     // Batarya sorunu ve "Merkez: 50 | Şube: 10" yazısı için bu lazım.

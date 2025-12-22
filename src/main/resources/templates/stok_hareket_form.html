@@ -14,6 +14,15 @@
         <div class="card-body">
 
             <form th:action="@{/stok-hareket-kaydet}" th:object="${hareket}" method="post">
+                <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="fas fa-check-circle"></i> <span th:text="${success}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+
+                <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-circle"></i> <strong>Hata:</strong> <span th:text="${error}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
 
                 <div class="mb-3">
                     <label class="fw-bold">Ürün Seçiniz</label>

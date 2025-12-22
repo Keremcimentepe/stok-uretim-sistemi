@@ -1,6 +1,8 @@
 package com.proje.stokuretim.controller;
 
+import com.proje.stokuretim.entity.Kullanici;
 import com.proje.stokuretim.entity.StokHareket;
+import com.proje.stokuretim.repository.KullaniciRepository; // Import Eklendi
 import com.proje.stokuretim.service.StokHareketService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -9,14 +11,20 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.security.Principal;
+import java.time.LocalDateTime;
 
 @Controller
 @RequiredArgsConstructor
 public class StokHareketController {
 
+    // İsim düzeltmesi: Aşağıda 'service' diye kullanacağız
     private final StokHareketService service;
+
+    // EKSİK OLAN KISIM: Repository buraya eklendi, Lombok otomatik inject edecek
+    private final KullaniciRepository kullaniciRepository;
 
     @GetMapping("/stok-hareket")
     public String hareketFormu(Model model) {
@@ -27,12 +35,27 @@ public class StokHareketController {
     }
 
     @PostMapping("/stok-hareket-kaydet")
-    public String hareketiKaydet(@ModelAttribute("hareket") StokHareket hareket, Principal principal) {
-        // Principal: O an sisteme giriş yapmış kullanıcının bilgisini tutar
-        service.hareketKaydet(hareket, principal.getName());
-        return "redirect:/urunler"; // İşlem bitince ürün listesine dön
+    public String stokHareketKaydet(@ModelAttribute StokHareket stokHareket,
+                                    Principal principal,
+                                    RedirectAttributes redirectAttributes) {
+        try {
+            // Artık kullaniciRepository tanınıyor ✅
+            Kullanici user = kullaniciRepository.findByEmail(principal.getName()).orElseThrow();
+            stokHareket.setKullanici(user);
+            stokHareket.setTarih(LocalDateTime.now());
+
+            // İsim düzeltildi: 'stokHareketService' yerine 'service' yazıldı ✅
+            service.stokHareketKaydet(stokHareket);
+
+            redirectAttributes.addFlashAttribute("success", "Stok hareketi başarıyla kaydedildi.");
+
+        } catch (RuntimeException e) {
+            // "Yetersiz Stok" hatası gelirse yakala ve ekrana bas
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+
+        return "redirect:/stok-hareket";
     }
-    // StokHareketController.java içine ekle:
 
     @GetMapping("/transfer")
     public String transferFormu(Model model) {
@@ -47,9 +70,20 @@ public class StokHareketController {
             @RequestParam Integer girisDepoId,
             @RequestParam Integer urunId,
             @RequestParam Double miktar,
-            Principal principal) {
+            Principal principal,
+            RedirectAttributes redirectAttributes) { // Hata mesajı için eklendi
 
-        service.transferYap(cikisDepoId, girisDepoId, urunId, miktar, principal.getName());
-        return "redirect:/depolar";
+        try {
+            // Transfer servisini çağır
+            service.transferYap(cikisDepoId, girisDepoId, urunId, miktar, principal.getName());
+
+            redirectAttributes.addFlashAttribute("success", "Transfer başarıyla gerçekleşti.");
+            return "redirect:/depolar";
+
+        } catch (RuntimeException e) {
+            // Transferde de "Yetersiz Stok" hatası olabilir, onu yakalayıp gösterelim
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            return "redirect:/transfer"; // Hata varsa transfer sayfasına geri dön
+        }
     }
 }

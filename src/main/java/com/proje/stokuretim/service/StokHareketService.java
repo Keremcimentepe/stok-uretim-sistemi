@@ -10,6 +10,7 @@ import com.proje.stokuretim.repository.StokHareketRepository;
 import com.proje.stokuretim.repository.UrunRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -28,12 +29,30 @@ public class StokHareketService {
     public List<Depo> tumDepolar() { return depoRepository.findAll(); }
 
     // Hareketi Kaydetme İşlemi
-    public void hareketKaydet(StokHareket hareket, String kullaniciEmail) {
-        // İşlemi yapan kullanıcıyı bul ve harekete ekle
-        Kullanici yapanKisi = kullaniciRepository.findByEmail(kullaniciEmail).orElseThrow();
-        hareket.setKullanici(yapanKisi);
+    // StokHareketService.java
 
-        hareket.setTarih(LocalDateTime.now()); // Şu anki zaman
+
+
+    @Transactional
+    public void stokHareketKaydet(StokHareket hareket) {
+        // 1. Eğer işlem 'Cikis' ise Kontrol Et
+        if ("Cikis".equals(hareket.getIslemTuru())) {
+
+            // Veritabanına sor: Bu depoda bu üründen kaç tane var?
+            Double mevcutStok = stokHareketRepository.getDepodakiNetStok(
+                    hareket.getDepo().getDepoId(),
+                    hareket.getUrun().getUrunId()
+            );
+
+            // 2. Yetersiz Stok Kontrolü
+            if (mevcutStok < hareket.getMiktar()) {
+                throw new RuntimeException("Yetersiz Stok! " +
+                        hareket.getDepo().getDepoAdi() + " deposunda sadece " +
+                        mevcutStok + " adet " + hareket.getUrun().getUrunAdi() + " bulunmaktadır.");
+            }
+        }
+
+        // Kontrolü geçtiyse kaydet (Trigger çalışır, genel stok güncellenir)
         stokHareketRepository.save(hareket);
     }
     // StokHareketService.java içine ekle:

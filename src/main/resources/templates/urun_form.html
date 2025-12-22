@@ -43,12 +43,12 @@
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="fw-bold">Birim</label>
-                                <select th:field="*{birim}" class="form-select">
+                                <select th:field="*{birim}" id="birimSelect" class="form-select" onchange="birimKontrol()">
                                     <option value="Adet">Adet</option>
+                                    <option value="Kutu">Kutu</option>
                                     <option value="Kg">Kg</option>
                                     <option value="Litre">Litre</option>
                                     <option value="Metre">Metre</option>
-                                    <option value="Kutu">Kutu</option>
                                 </select>
                             </div>
                         </div>
@@ -63,7 +63,8 @@
                             <label class="fw-bold">Güncel Stok</label>
 
                             <div th:if="${urun.urunId == null}">
-                                <input type="number" step="0.01" th:field="*{guncelStok}" class="form-control" placeholder="Başlangıç stoğu (Opsiyonel)">
+                                <input type="number" id="stokInput" step="0.01" min="0" th:field="*{guncelStok}"
+                                       class="form-control" placeholder="Başlangıç stoğu (Opsiyonel)" oninput="validasyon()">
                                 <div class="form-text text-success">Yeni ürün olduğu için başlangıç stoğu girebilirsiniz (Merkez Depo'ya eklenir).</div>
                             </div>
 
@@ -93,6 +94,46 @@
         </div>
     </div>
 </div>
+<script>
+    function birimKontrol() {
+        var birim = document.getElementById("birimSelect").value;
+        var stokInput = document.getElementById("stokInput");
 
+        // Eğer Adet veya Kutu seçildiyse: Sadece Tam Sayı
+        if (birim === "Adet" || birim === "Kutu") {
+            stokInput.setAttribute("step", "1"); // Ok tuşları 1'er artırır
+            stokInput.value = Math.floor(stokInput.value); // Mevcut küsuratı siler
+        } else {
+            // Kg, Litre, Metre ise: Küsurat Olabilir
+            stokInput.setAttribute("step", "0.01"); // Ok tuşları virgüllü artırır
+        }
+    }
+
+    function validasyon() {
+        var birim = document.getElementById("birimSelect").value;
+        var stokInput = document.getElementById("stokInput");
+
+        // Negatif sayı girilmesini engelle
+        if (stokInput.value < 0) {
+            stokInput.value = 0;
+        }
+
+        // Adet/Kutu ise ve kullanıcı elle virgül yazmaya çalışırsa temizle
+        if (birim === "Adet" || birim === "Kutu") {
+            // Girilen değerin tam sayı olup olmadığına bak
+            if (stokInput.value.includes(".") || stokInput.value.includes(",")) {
+                // Küsuratı at, tam sayı yap
+                stokInput.value = Math.floor(stokInput.value);
+            }
+        }
+    }
+
+    // Sayfa ilk açıldığında da kontrol et (Düzenleme modu için)
+    window.onload = function() {
+        birimKontrol();
+    };
+</script>
+
+</body> </html>
 </body>
 </html>
